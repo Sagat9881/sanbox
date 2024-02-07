@@ -21,24 +21,35 @@ public class ReflectionUtils {
         // Мы будем подниматься вверх по иерархии, пока не найдем интересующий нас класс.
         // В процессе поднятия мы будем сохранять в genericClassesStack все параметризированные классы
         // они нам понадобятся при спуске вниз.
-        LinkedList<ParameterizedType> genericClassesStack;
 
-        // clazz - текущий рассматриваемый класс
-        Class clazz = actualClass;
+        final LinkedList<ParameterizedType> genericClassesStack = getGenericParameterStack(genericClass, actualClass);
 
-        if (genericClass.isInterface()) {
-            genericClassesStack = getInterfaceGenericType(genericClass, clazz);
-        } else {
-            genericClassesStack = getClassGenericType(genericClass, clazz);
-        }
+        final Type resultType = getResult(parameterIndex, genericClassesStack, actualClass, genericClass);
 
+        final Class resultClass = (Class) getRawType(resultType);
+
+        return resultClass;
+    }
+    private static Type getResult(int parameterIndex, LinkedList<ParameterizedType> genericClassesStack, Class actualClass, Class genericClass) {
         if (genericClassesStack.isEmpty()) {
             // Мы спустились до самого низа, Но не нашли среди родителей actualClass (классов и интерфейсов) указанный GenericClass
             throw new IllegalArgumentException("actual class " + actualClass.getSimpleName() +
                     " does not inherit or implement the specified type " + genericClass.getSimpleName() +
                     " or specified type actually is not parameterized");
         }
-        Type result = getResult(parameterIndex, genericClassesStack);
+
+        // Нужный класс найден. Теперь мы можем узнать, какими типами он параметризован.
+        Type result = genericClassesStack.pop().getActualTypeArguments()[parameterIndex];
+        // Анализируем тип значения переменной, в которой должен быть
+        while (result instanceof TypeVariable && !genericClassesStack.isEmpty()) {
+            // Похоже наш параметр задан где-то ниже по иерархии, спускаемся вниз.
+            // Получаем индекс параметра в том классе, в котором он задан.
+            int actualArgumentIndex = getParameterTypeDeclarationIndex((TypeVariable) result);
+            // Берем соответствующий класс, содержащий метаинформацию о нашем параметре.
+            ParameterizedType type = genericClassesStack.pop();
+            // Получаем информацию о значении параметра.
+            result = type.getActualTypeArguments()[actualArgumentIndex];
+        }
 
         if (result instanceof TypeVariable) {
             // Мы спустились до самого низа, но даже там нужный параметр не имеет явного задания.
@@ -61,68 +72,74 @@ public class ReflectionUtils {
             // Похоже, что параметр - массив или что-то еще, что не является классом.
             throw new IllegalStateException("Actual parameter type for " + actualClass.getName() + " is not a Class.");
         }
-
-        return (Class) result;
-    }
-
-    private static Type getResult(int parameterIndex, LinkedList<ParameterizedType> genericClassesStack) {
-        // Нужный класс найден. Теперь мы можем узнать, какими типами он параметризован.
-        Type result = genericClassesStack.pop().getActualTypeArguments()[parameterIndex];
-        // Анализируем тип значения переменной, в которой должен быть
-        while (result instanceof TypeVariable && !genericClassesStack.isEmpty()) {
-            // Похоже наш параметр задан где-то ниже по иерархии, спускаемся вниз.
-            // Получаем индекс параметра в том классе, в котором он задан.
-            int actualArgumentIndex = getParameterTypeDeclarationIndex((TypeVariable) result);
-            // Берем соответствующий класс, содержащий метаинформацию о нашем параметре.
-            ParameterizedType type = genericClassesStack.pop();
-            // Получаем информацию о значении параметра.
-            result = type.getActualTypeArguments()[actualArgumentIndex];
-        }
         return result;
     }
 
-
-    private static LinkedList<ParameterizedType> getClassGenericType(Class genericClass, Class clazz) {
-        // Прекращаем работу если genericClass не является предком actualClass.
-        if (!genericClass.isAssignableFrom(clazz.getSuperclass())) {
-            throw new IllegalArgumentException("Class " + genericClass.getName() + " is not a superclass of "
-                    + clazz.getName() + ".");
-        }
-        final LinkedList<ParameterizedType> genericClassesStack = new LinkedList<>();
-//
-//        Type genericSuperclass = clazz.getGenericSuperclass();
-//
-//        Type rawType = getType(genericClassesStack, genericSuperclass);
-
-
-        return genericClassesStack;
-    }
-
-    private static LinkedList<ParameterizedType> getInterfaceGenericType(Class genericInterface, Class clazz) {
-        LinkedList<ParameterizedType> genericClassesStack = new LinkedList<>();
-
-        genericClassesStack = getInterfaceGenericType(genericClassesStack, genericInterface, clazz);
-        //Поднимаемся выше по иерархии классов
-        while (genericClassesStack.isEmpty() &&
-                !clazz.getGenericSuperclass().equals(Object.class)) {
-            clazz =  clazz.getClass();
-            genericClassesStack = getInterfaceGenericType(genericClassesStack, genericInterface, clazz);
+    private static LinkedList<ParameterizedType> getGenericParameterStack(Class genericRawType, Class clazz) {
+        if (!genericRawType.isInterface()) {
+            if (!genericRawType.isAssignableFrom(clazz.getSuperclass())) {
+                throw new IllegalArgumentException("Class " + genericRawType.getName() + " is not a superclass of "
+                        + clazz.getName() + ".");
+            }
         }
 
+        LinkedList<ParameterizedType> parametrizedTypeStack = new LinkedList<>();
 
-        return genericClassesStack;
+        while (true) {
+            LinkedList<ParameterizedType> parametrizedInterfaceStack =
+                    getParametrizedInterfaceStack(parametrizedTypeStack, genericRawType, clazz);
+            if (!parametrizedInterfaceStack.isEmpty()) {
+                return parametrizedInterfaceStack;
+            }
+            if (genericRawType.equals(clazz.getSuperclass())) {
+                pushType(parametrizedTypeStack, clazz.getGenericSuperclass());
+            } else {
+                pushType(parametrizedTypeStack, clazz);
+            }
+
+            if (!checkStopIteration(genericRawType, clazz)) {
+                clazz = clazz.getSuperclass();
+            } else {
+                break;
+            }
+        }
+        return parametrizedTypeStack;
     }
 
-    private static LinkedList<ParameterizedType> getInterfaceGenericType(LinkedList<ParameterizedType> genericClassesStack,
-                                                                         Type genericInterface, Type clazz) {
-        final Type classType = getType(genericClassesStack, clazz);
+    private static boolean checkStopIteration(Class genericType, Class clazz) {
+        Class rawType = (Class) getRawType(clazz);
+        Class rawGenericType = (Class) getRawType(genericType);
+        boolean isNoInterfaces = clazz.getInterfaces().length == 0;
+        //Если который мы ищем искомый класс интерфейс, но у текущего интерфейса нет
+        //То значит мы в рекурсии искали интерфейс и больше некуда
+        boolean isInterface = genericType.isInterface();
+        if (isInterface && isNoInterfaces) {
+            return true;
+        }
+        //В любом случае(итеративно и рекурсивно) при обнаружении необходимого типа
+        //стоит прекратить поиск
+        if (rawGenericType.equals(rawType.getSuperclass())) {
+            return true;
+        }
+        //Если искомый класс не интерфейс(или уже бы вышли из метода)
+        //то осталось одно место, куда можно двигаться - вверх классам
+        //а если класса нет или родитель Object - значит мы уже на самом верху
+        if (clazz.getGenericSuperclass() == null || clazz.getGenericSuperclass().equals(Object.class)) {
+            return true;
+        }
+        return false;
+    }
 
-        Class rawType = (Class) getTypeRawType(classType);
+    private static LinkedList<ParameterizedType> getParametrizedInterfaceStack(LinkedList<ParameterizedType> genericClassesStack,
+                                                                               Type genericInterface, Type clazz) {
+        final Type classType = pushType(genericClassesStack, clazz);
 
-        Class rawGenericType = (Class) getTypeRawType(genericInterface);
+        Class rawType = (Class) getRawType(classType);
+
+        Class rawGenericType = (Class) getRawType(genericInterface);
 
 
-        final Type[] genericInterfaces = ((Class) rawType).getGenericInterfaces();
+        final Type[] genericInterfaces = rawType.getGenericInterfaces();
         // Проверяем, дошли мы до нужного предка или нет - конец рекурсии
         if (rawGenericType.equals(rawType)) {
             return genericClassesStack;
@@ -140,7 +157,7 @@ public class ReflectionUtils {
         } else {
             //Идем на уровень выше
             return Arrays.stream(genericInterfaces)
-                    .map(parentInterface -> getInterfaceGenericType(new LinkedList<>(genericClassesStack), genericInterface, parentInterface))
+                    .map(parentInterface -> getParametrizedInterfaceStack(new LinkedList<>(genericClassesStack), genericInterface, parentInterface))
                     .filter(stack -> genericInterface.equals(Optional.ofNullable(stack.peek()).map(ParameterizedType::getRawType).orElse(null)))
                     .findFirst()
                     // В этой ветке интерфейсов значения нет, поищем в следующей (если есть)
@@ -148,11 +165,11 @@ public class ReflectionUtils {
         }
     }
 
-    private static Type getTypeRawType(Type classType) {
+    private static Type getRawType(Type classType) {
         return isParameterizedType(classType) ? ((ParameterizedType) classType).getRawType() : classType;
     }
 
-    private static Type getType(LinkedList<ParameterizedType> genericClassesStack, Type genericSuperclass) {
+    private static Type pushType(LinkedList<ParameterizedType> genericClassesStack, Type genericSuperclass) {
 
         if (isParameterizedType(genericSuperclass)) {
             // Если предок - параметризованный класс, то запоминаем его - возможно он пригодится при спуске вниз.
@@ -166,8 +183,7 @@ public class ReflectionUtils {
     }
 
     private static boolean isParameterizedType(Type genericSuperclass) {
-        boolean isParameterizedType = genericSuperclass instanceof ParameterizedType;
-        return isParameterizedType;
+        return genericSuperclass instanceof ParameterizedType;
     }
 
     public static int getParameterTypeDeclarationIndex(final TypeVariable typeVariable) {
