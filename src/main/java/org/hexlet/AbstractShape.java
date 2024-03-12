@@ -1,27 +1,22 @@
 package org.hexlet;
 
-public class GoodEncapsulatedShape {
-
-    protected int calculateArea() {
-        throw new MethodNotSupportedException();
-    }
+public abstract class AbstractShape {
+    protected abstract int calculateArea();
 
     public int getArea() {
         return calculateArea();
     }
 
-    static class Rectangle extends GoodEncapsulatedShape {
+    static class Rectangle extends AbstractShape {
         private int x, y;
-
         @Override
         protected int calculateArea() {
             return x * y;
         }
     }
 
-    static class RectangularTriangle extends GoodEncapsulatedShape {
-        private int legX, legY;
-
+    static class RectangularTriangle extends AbstractShape {
+        int legX, legY;
         @Override
         protected int calculateArea() {
             return (legX * legY) / 2;

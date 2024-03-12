@@ -1,6 +1,7 @@
 package org.hexlet;
 
 public class MathUtils {
+    int x;
     public static int sumOfInts(int i, int...nums) {
         int sum = i;
 
