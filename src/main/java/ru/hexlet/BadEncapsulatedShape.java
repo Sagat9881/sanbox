@@ -1,4 +1,4 @@
-package org.hexlet;
+package ru.hexlet;
 
 public class BadEncapsulatedShape {
     public int calculateArea() {

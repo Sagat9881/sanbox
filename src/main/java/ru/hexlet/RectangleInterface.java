@@ -1,4 +1,4 @@
-package org.hexlet;
+package ru.hexlet;
 
 
 public interface RectangleInterface {

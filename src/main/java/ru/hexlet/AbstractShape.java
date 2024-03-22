@@ -1,4 +1,4 @@
-package org.hexlet;
+package ru.hexlet;
 
 public abstract class AbstractShape {
     protected abstract int calculateArea();
