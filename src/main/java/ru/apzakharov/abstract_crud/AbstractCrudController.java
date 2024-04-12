@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * Date: 21.12.2021
  * Time: 16:55
  */
-public abstract class AbstractCrudController<DTO, ID extends Serializable, ENTITY extends EntityWithId<ID> > {
+public abstract class AbstractCrudController<DTO, ID extends Serializable, ENTITY extends EntityWithId<ID>> {
     protected BaseJpaRepository<ENTITY, ID> repository;
     protected ExtendedEntityMapper<ENTITY, ID, DTO> mapper;
 
@@ -112,12 +112,15 @@ public abstract class AbstractCrudController<DTO, ID extends Serializable, ENTIT
 
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(readOnly = true)
-    public ResponseEntity<ListResult<DTO>> getList(@RequestParam MultiValueMap<String, String> params,
-                                                   @RequestParam(name = "skip", required = false, defaultValue = "0")
-                                                 Integer skip,
-                                                   @RequestParam(name = "take", required = false, defaultValue = "20")
-                                                 Integer take,
-                                                   @SortDefault(sort = "id", direction = Sort.Direction.DESC) Sort sort) {
+
+    public ResponseEntity<ListResult<DTO>> getList(
+            // {url}/resource?path.to.field>0 && path.to.another_field=5
+            @RequestParam MultiValueMap<String, String> params,
+            @RequestParam(name = "skip", required = false, defaultValue = "0")
+            Integer skip,
+            @RequestParam(name = "take", required = false, defaultValue = "20")
+            Integer take,
+            @SortDefault(sort = "id", direction = Sort.Direction.DESC) Sort sort) {
 
         QuerydslBindings bindings = bindingsFactory.createBindingsFor(typeInformation);
 
