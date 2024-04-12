@@ -1,12 +1,12 @@
 package ru.apzakharov.abstract_crud.mapper;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.mapstruct.TargetType;
 import org.springframework.data.domain.Persistable;
 import org.springframework.stereotype.Component;
-import ru.diasoft.micro.domain.base.EntityWithId;
+import ru.apzakharov.abstract_crud.domain.base.EntityWithId;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.io.Serializable;
 import java.util.Optional;
 

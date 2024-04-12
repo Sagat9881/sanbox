@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Persistable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
@@ -20,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import ru.apzakharov.abstract_crud.domain.base.EntityWithId;
 import ru.apzakharov.abstract_crud.dto.ListResult;
 import ru.apzakharov.abstract_crud.dto.OffsetLimitPageRequest;
 import ru.apzakharov.abstract_crud.mapper.ExtendedEntityMapper;
@@ -35,9 +35,9 @@ import java.util.stream.Collectors;
  * Date: 21.12.2021
  * Time: 16:55
  */
-public abstract class AbstractCrudController<T extends Persistable<ID>, ID extends Serializable, D> {
-    protected BaseJpaRepository<T, ID> repository;
-    protected ExtendedEntityMapper<T, ID, D> mapper;
+public abstract class AbstractCrudController<DTO, ID extends Serializable, ENTITY extends EntityWithId<ID> > {
+    protected BaseJpaRepository<ENTITY, ID> repository;
+    protected ExtendedEntityMapper<ENTITY, ID, DTO> mapper;
 
     private ConversionService conversionService;
     private QuerydslBindingsFactory bindingsFactory;
@@ -47,12 +47,12 @@ public abstract class AbstractCrudController<T extends Persistable<ID>, ID exten
     private final ClassTypeInformation<?> typeInformation;
 
     @Autowired
-    public void setRepository(BaseJpaRepository<T, ID> repository) {
+    public void setRepository(BaseJpaRepository<ENTITY, ID> repository) {
         this.repository = repository;
     }
 
     @Autowired
-    public void setMapper(ExtendedEntityMapper<T, ID, D> mapper) {
+    public void setMapper(ExtendedEntityMapper<ENTITY, ID, DTO> mapper) {
         this.mapper = mapper;
     }
 
@@ -68,7 +68,7 @@ public abstract class AbstractCrudController<T extends Persistable<ID>, ID exten
     }
 
     protected AbstractCrudController() {
-        domainType = ReflectionUtils.getGenericParameterClass(this.getClass(),AbstractCrudController.class,0 );
+        domainType = ReflectionUtils.getGenericParameterClass(this.getClass(), AbstractCrudController.class, 0);
         typeInformation = ClassTypeInformation.from(domainType);
     }
 
@@ -79,27 +79,27 @@ public abstract class AbstractCrudController<T extends Persistable<ID>, ID exten
 
     @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity<ID> add(@RequestBody D dto) {
-        T entity = mapper.dtoToEntity(dto);
+    public ResponseEntity<ID> add(@RequestBody DTO dto) {
+        ENTITY entity = mapper.dtoToEntity(dto);
         repository.save(entity);
         return ResponseEntity.status(HttpStatus.CREATED).body(entity.getId());
     }
 
     @GetMapping(value = "/{id}")
     @Transactional(readOnly = true)
-    public ResponseEntity<D> get(@PathVariable ID id) {
-        T t = repository.findById(id).orElseThrow(RuntimeException::new);
-        D d = mapper.entityToDto(t);
-        return ResponseEntity.ok(d);
+    public ResponseEntity<DTO> get(@PathVariable ID id) {
+        ENTITY entity = repository.findById(id).orElseThrow(RuntimeException::new);
+        DTO DTO = mapper.entityToDto(entity);
+        return ResponseEntity.ok(DTO);
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity<Void> update(@RequestBody D dto, @PathVariable(name = "id") ID id) {
-        T t = repository.findById(id).orElseThrow(RuntimeException::new);
+    public ResponseEntity<Void> update(@RequestBody DTO dto, @PathVariable(name = "id") ID id) {
+        ENTITY entity = repository.findById(id).orElseThrow(RuntimeException::new);
 
-        T newT = mapper.dtoToEntity(dto);
-        BeanUtils.copyProperties(newT, t);
+        ENTITY newEntity = mapper.dtoToEntity(dto);
+        BeanUtils.copyProperties(newEntity, entity);
 
         return ResponseEntity.ok().build();
     }
@@ -112,12 +112,12 @@ public abstract class AbstractCrudController<T extends Persistable<ID>, ID exten
 
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(readOnly = true)
-    public ResponseEntity<ListResult<D>> getList(@RequestParam MultiValueMap<String, String> params,
-                                                 @RequestParam(name = "skip", required = false, defaultValue = "0")
-                                                         Integer skip,
-                                                 @RequestParam(name = "take", required = false, defaultValue = "20")
-                                                         Integer take,
-                                                 @SortDefault(sort = "id", direction = Sort.Direction.DESC) Sort sort) {
+    public ResponseEntity<ListResult<DTO>> getList(@RequestParam MultiValueMap<String, String> params,
+                                                   @RequestParam(name = "skip", required = false, defaultValue = "0")
+                                                 Integer skip,
+                                                   @RequestParam(name = "take", required = false, defaultValue = "20")
+                                                 Integer take,
+                                                   @SortDefault(sort = "id", direction = Sort.Direction.DESC) Sort sort) {
 
         QuerydslBindings bindings = bindingsFactory.createBindingsFor(typeInformation);
 
@@ -125,9 +125,9 @@ public abstract class AbstractCrudController<T extends Persistable<ID>, ID exten
 
         sort = sort != null && sort.isSorted() ? sort : OffsetLimitPageRequest.DEFAULT_SORT;
 
-        Page<T> page = repository.findAll(predicate, new OffsetLimitPageRequest(skip, take, sort));
+        Page<ENTITY> page = repository.findAll(predicate, new OffsetLimitPageRequest(skip, take, sort));
 
-        List<D> collect = page.getContent().stream().map(mapper::entityToDto).collect(Collectors.toList());
+        List<DTO> collect = page.getContent().stream().map(mapper::entityToDto).collect(Collectors.toList());
 
         return ResponseEntity.ok(new ListResult<>(page.getTotalElements(), collect));
     }
