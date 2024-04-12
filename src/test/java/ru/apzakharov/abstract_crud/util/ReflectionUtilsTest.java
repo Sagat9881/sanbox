@@ -1,5 +1,14 @@
+package ru.apzakharov.abstract_crud.util;
 
 import org.junit.jupiter.api.Test;
+import ru.apzakharov.abstract_crud.util.dto.AnotherGenericInterface;
+import ru.apzakharov.abstract_crud.util.dto.NoParentClass;
+import ru.apzakharov.abstract_crud.util.dto.NotGenericInterface;
+import ru.apzakharov.abstract_crud.util.dto.child.ChildClass;
+import ru.apzakharov.abstract_crud.util.dto.child.ChildInterface;
+import ru.apzakharov.abstract_crud.util.dto.parent.ParentClass;
+import ru.apzakharov.abstract_crud.util.dto.parent.ParentClassInterface;
+import ru.apzakharov.abstract_crud.util.dto.parent.ParentInterface;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
