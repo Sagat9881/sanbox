@@ -1,4 +1,4 @@
-package ru.apzakharov.abstract_crud;
+package ru.apzakharov.abstract_crud.service;
 
 import com.querydsl.core.types.Predicate;
 import jakarta.annotation.PostConstruct;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * Date: 21.12.2021
  * Time: 16:55
  */
-public abstract class AbstractCrudController<DTO, ID extends Serializable, ENTITY extends EntityWithId<ID>> {
+public abstract class AbstractCrudService<DTO, ID extends Serializable, ENTITY extends EntityWithId<ID>> {
     protected BaseJpaRepository<ENTITY, ID> repository;
     protected ExtendedEntityMapper<ENTITY, ID, DTO> mapper;
 
@@ -67,8 +67,8 @@ public abstract class AbstractCrudController<DTO, ID extends Serializable, ENTIT
         this.bindingsFactory = bindingsFactory;
     }
 
-    protected AbstractCrudController() {
-        domainType = ReflectionUtils.getGenericParameterClass(this.getClass(), AbstractCrudController.class, 0);
+    protected AbstractCrudService() {
+        domainType = ReflectionUtils.getGenericParameterClass(this.getClass(), AbstractCrudService.class, 0);
         typeInformation = ClassTypeInformation.from(domainType);
     }
 
@@ -77,53 +77,40 @@ public abstract class AbstractCrudController<DTO, ID extends Serializable, ENTIT
         predicateBuilder = new QuerydslPredicateBuilder(conversionService, bindingsFactory.getEntityPathResolver());
     }
 
-    @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+
     @Transactional
-    public ResponseEntity<ID> add(@RequestBody DTO dto) {
+    public ID add(@RequestBody DTO dto) {
         ENTITY entity = mapper.dtoToEntity(dto);
-        repository.save(entity);
-        return ResponseEntity.status(HttpStatus.CREATED).body(entity.getId());
+        return repository.save(entity).getId();
     }
 
-    @GetMapping(value = "/{id}")
+
     @Transactional(readOnly = true)
-    public ResponseEntity<DTO> get(@PathVariable ID id) {
-        ENTITY entity = repository.findById(id).orElseThrow(RuntimeException::new);
-        DTO DTO = mapper.entityToDto(entity);
-        return ResponseEntity.ok(DTO);
+    public DTO get(@PathVariable ID id) {
+        return repository.findById(id)
+                .map(mapper::entityToDto)
+                .orElseThrow(RuntimeException::new);
     }
 
-    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity<Void> update(@RequestBody DTO dto, @PathVariable(name = "id") ID id) {
+    public void update(@RequestBody DTO dto, @PathVariable(name = "id") ID id) {
         ENTITY entity = repository.findById(id).orElseThrow(RuntimeException::new);
 
         ENTITY newEntity = mapper.dtoToEntity(dto);
         BeanUtils.copyProperties(newEntity, entity);
-
-        return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Void> delete(@PathVariable ID id) {
+    @Transactional
+    public void delete(@PathVariable ID id) {
         repository.deleteById(id);
-        return ResponseEntity.ok().build();
     }
 
-    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Transactional(readOnly = true)
 
-    public ResponseEntity<ListResult<DTO>> getList(
-            // {url}/resource?path.to.field>0 && path.to.another_field=5
-            @RequestParam MultiValueMap<String, String> params,
-            @RequestParam(name = "skip", required = false, defaultValue = "0")
-            Integer skip,
-            @RequestParam(name = "take", required = false, defaultValue = "20")
-            Integer take,
-            @SortDefault(sort = "id", direction = Sort.Direction.DESC) Sort sort) {
+    @Transactional(readOnly = true)
+    public ListResult<DTO> getList( MultiValueMap<String, String> params, Integer skip, Integer take, Sort sort) {
 
         QuerydslBindings bindings = bindingsFactory.createBindingsFor(typeInformation);
-
+        // {url}/resource?path.to.field>0 && path.to.another.field=5
         Predicate predicate = predicateBuilder.getPredicate(typeInformation, params, bindings);
 
         sort = sort != null && sort.isSorted() ? sort : OffsetLimitPageRequest.DEFAULT_SORT;
@@ -132,7 +119,7 @@ public abstract class AbstractCrudController<DTO, ID extends Serializable, ENTIT
 
         List<DTO> collect = page.getContent().stream().map(mapper::entityToDto).collect(Collectors.toList());
 
-        return ResponseEntity.ok(new ListResult<>(page.getTotalElements(), collect));
+        return new ListResult<>(page.getTotalElements(), collect);
     }
 
     public String getObjectType() {
