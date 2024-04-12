@@ -7,11 +7,7 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import java.util.List;
 
-/**
- * User: ibalekseev
- * Date: 19.05.2017
- * Time: 13:53
- */
+
 public interface QueryDslPredicateExecutorFixRepository<T> extends QuerydslPredicateExecutor<T> {
 
     @Override

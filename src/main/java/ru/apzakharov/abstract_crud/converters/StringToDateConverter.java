@@ -7,11 +7,7 @@ import javax.annotation.Nullable;
 import java.text.ParseException;
 import java.util.Date;
 
-/**
- * User: ibalekseev
- * Date: 27.04.2015
- * Time: 17:48
- */
+
 public class StringToDateConverter implements Converter<String, Date> {
     private static final String[] PATTERNS = new String[]{
             "yyyy-MM-dd",

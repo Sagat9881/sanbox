@@ -7,11 +7,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 import java.io.Serializable;
 
-/**
- * User: ibalekseev
- * Date: 12.05.2017
- * Time: 17:38
- */
+
 @NoRepositoryBean
 public interface BaseJpaRepository<T, ID extends Serializable> extends QuerydslPredicateExecutor<T>, JpaRepository<T, ID>, JpaSpecificationExecutor<T>, QueryDslPredicateExecutorFixRepository<T> {
 

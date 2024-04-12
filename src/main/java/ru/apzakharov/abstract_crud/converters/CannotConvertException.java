@@ -2,11 +2,7 @@ package ru.apzakharov.abstract_crud.converters;
 
 import org.springframework.core.convert.ConversionException;
 
-/**
- * User: ibalekseev
- * Date: 03.06.2016
- * Time: 15:09
- */
+
 public class CannotConvertException extends ConversionException {
 
     private static final long serialVersionUID = 1L;

@@ -9,11 +9,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-/**
- * User: ibalekseev
- * Date: 27.04.2015
- * Time: 17:48
- */
+
 public class StringToLocalDateTimeConverter implements Converter<String, LocalDateTime> {
     private static final List<DateTimeFormatter> OFFSET_FORMATERS = ImmutableList.of(
             DateTimeFormatter.ISO_OFFSET_DATE_TIME,

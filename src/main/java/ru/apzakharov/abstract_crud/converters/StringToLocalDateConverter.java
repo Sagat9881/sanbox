@@ -6,11 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/**
- * User: ibalekseev
- * Date: 27.04.2015
- * Time: 17:48
- */
+
 public class StringToLocalDateConverter implements Converter<String, LocalDate> {
 
     @Override
