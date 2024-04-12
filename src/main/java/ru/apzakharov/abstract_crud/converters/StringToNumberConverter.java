@@ -8,9 +8,6 @@ import org.springframework.lang.Nullable;
 import java.util.Set;
 
 
-/**
- * Created by Inna Spodarik on 25.08.17.
- */
 public abstract class StringToNumberConverter implements GenericConverter {
 
     @Override

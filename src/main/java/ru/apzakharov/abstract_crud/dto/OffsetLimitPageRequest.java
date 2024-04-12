@@ -3,11 +3,7 @@ package ru.apzakharov.abstract_crud.dto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-/**
- * User: ialekseev
- * Date: 22.12.2021
- * Time: 12:23
- */
+
 public class OffsetLimitPageRequest implements Pageable {
     public static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "id");
 

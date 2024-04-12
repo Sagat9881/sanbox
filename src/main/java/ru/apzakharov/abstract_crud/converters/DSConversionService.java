@@ -8,11 +8,6 @@ import org.springframework.data.convert.Jsr310Converters;
 
 import java.util.List;
 
-/**
- * User: ext_ibalekseev
- * Date: 10.02.2015
- * Time: 12:09
- */
 public class DSConversionService extends DefaultConversionService {
 
     public DSConversionService() {
