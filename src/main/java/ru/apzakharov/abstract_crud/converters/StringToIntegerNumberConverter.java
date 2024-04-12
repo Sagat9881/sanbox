@@ -3,7 +3,6 @@ package ru.apzakharov.abstract_crud.converters;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.core.convert.TypeDescriptor;
 
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Set;
@@ -18,7 +17,7 @@ public class StringToIntegerNumberConverter extends StringToNumberConverter {
     }
 
     @Override
-    protected Number getValue(@NotNull TypeDescriptor targetType, String s) {
+    protected Number getValue( TypeDescriptor targetType, String s) {
         try {
             BigDecimal val = new BigDecimal(s).stripTrailingZeros();
 

@@ -5,7 +5,6 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.lang.Nullable;
 
-import javax.validation.constraints.NotNull;
 import java.util.Set;
 
 
@@ -18,7 +17,7 @@ public abstract class StringToNumberConverter implements GenericConverter {
     public abstract Set<ConvertiblePair> getConvertibleTypes();
 
     @Override
-    public Object convert(@Nullable Object source, @NotNull TypeDescriptor sourceType, @NotNull TypeDescriptor targetType) {
+    public Object convert(@Nullable Object source,  TypeDescriptor sourceType,  TypeDescriptor targetType) {
         String s = (String) source;
         if (StringUtils.isBlank(s)) {
             return null;
@@ -33,6 +32,6 @@ public abstract class StringToNumberConverter implements GenericConverter {
         return val;
     }
 
-    protected abstract Number getValue(@NotNull TypeDescriptor sourceType, String s);
+    protected abstract Number getValue( TypeDescriptor sourceType, String s);
 
 }

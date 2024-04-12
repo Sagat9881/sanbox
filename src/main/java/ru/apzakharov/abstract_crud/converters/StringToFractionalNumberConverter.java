@@ -1,9 +1,9 @@
 package ru.apzakharov.abstract_crud.converters;
 
 import com.google.common.collect.ImmutableSet;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.convert.TypeDescriptor;
 
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.Set;
