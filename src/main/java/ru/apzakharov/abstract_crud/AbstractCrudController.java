@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import ru.apzakharov.abstract_crud.dto.ListResult;
+import ru.apzakharov.abstract_crud.dto.OffsetLimitPageRequest;
 import ru.apzakharov.abstract_crud.mapper.ExtendedEntityMapper;
 import ru.apzakharov.abstract_crud.repository.BaseJpaRepository;
 import ru.apzakharov.abstract_crud.util.ReflectionUtils;
