@@ -10,7 +10,7 @@ import ru.apzakharov.application.service.mapper.DemoServiceMapper;
 @Service
 public class DemoService extends AbstractCrudService<DemoDto,Integer, DemoEntity> {
 
-    protected DemoService(DemoRepository repository,
+    public DemoService(DemoRepository repository,
                           DemoServiceMapper mapper) {
         super(repository,  mapper);
     }
