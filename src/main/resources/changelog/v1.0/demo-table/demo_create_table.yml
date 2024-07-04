@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - logicalFilePath: changelog/v1.0/demo_create_table.yml
+
+  - changeSet:
+      id: create-bank-branch-dictionary
+      author: apzakharov
+      changes:
+        - sqlFile:
+            path: sql/demo.sql
+            relativeToChangelogFile: true

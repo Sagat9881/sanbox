@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - property:
+      name: json_type
+      value: JSONB
+
+  - include:
+      file: v1.0/changelog-v1.0-cumulative.yml
+      relativeToChangelogFile: true

@@ -1,0 +1,6 @@
+databaseChangeLog:
+  - logicalFilePath: changelog/v1.0/changelog-v1.0-cumulative.yml
+
+  - include:
+      file: demo-table/demo_create_table.yml
+      relativeToChangelogFile: true
