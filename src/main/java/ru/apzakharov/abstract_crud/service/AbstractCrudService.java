@@ -30,11 +30,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * User: ialekseev
- * Date: 21.12.2021
- * Time: 16:55
- */
+
 public abstract class AbstractCrudService<DTO, ID extends Serializable, ENTITY extends EntityWithId<ID>> {
     protected BaseJpaRepository<ENTITY, ID> repository;
     protected ExtendedEntityMapper<ENTITY, ID, DTO> mapper;
