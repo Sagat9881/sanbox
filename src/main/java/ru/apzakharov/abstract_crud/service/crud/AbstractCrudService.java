@@ -11,7 +11,6 @@ public abstract class AbstractCrudService<DTO, ID extends Serializable, ENTITY e
         implements CrudService<DTO, ID> {
 
     protected final CrudRepository<ID, ENTITY> repository;
-
     private final ServiceMapper<DTO, ENTITY> mapper;
 
     public AbstractCrudService(CrudRepository<ID, ENTITY> repository, ServiceMapper<DTO, ENTITY> mapper) {
