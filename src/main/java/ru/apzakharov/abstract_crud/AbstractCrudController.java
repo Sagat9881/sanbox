@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.apzakharov.abstract_crud.dto.ListResult;
 import ru.apzakharov.abstract_crud.mapper.ExtendedEntityMapper;
 import ru.apzakharov.abstract_crud.repository.BaseJpaRepository;
-import ru.apzakharov.abstract_crud.util.ReflectionUtils;
+import ru.apzakharov.util.ReflectionUtils;
 
 import java.io.Serializable;
 import java.util.List;

@@ -1,4 +1,4 @@
-package ru.apzakharov.abstract_crud.util;
+package ru.apzakharov.util;
 
 import java.lang.reflect.GenericDeclaration;
 import java.lang.reflect.ParameterizedType;

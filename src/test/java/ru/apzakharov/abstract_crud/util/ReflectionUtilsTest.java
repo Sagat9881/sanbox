@@ -9,6 +9,7 @@ import ru.apzakharov.abstract_crud.util.dto.child.ChildInterface;
 import ru.apzakharov.abstract_crud.util.dto.parent.ParentClass;
 import ru.apzakharov.abstract_crud.util.dto.parent.ParentClassInterface;
 import ru.apzakharov.abstract_crud.util.dto.parent.ParentInterface;
+import ru.apzakharov.util.ReflectionUtils;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
